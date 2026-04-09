@@ -8,16 +8,27 @@ from layers.Embed import DataEmbedding_inverted
 class Model(nn.Module):
     """
     Paper link: https://arxiv.org/abs/2310.06625
+    Depthwise local CNN variant (DC-iTransformer) for forecasting.
     """
 
     def __init__(self, configs):
         super(Model, self).__init__()
         if configs.task_name not in {'long_term_forecast', 'short_term_forecast'}:
-            raise ValueError('iTransformer only supports forecasting tasks in this repository.')
+            raise ValueError('DC-iTransformer only supports forecasting tasks in this repository.')
 
         self.task_name = configs.task_name
         self.seq_len = configs.seq_len
         self.pred_len = configs.pred_len
+        self.local_cnn = nn.Sequential(
+            nn.Conv1d(
+                in_channels=configs.enc_in,
+                out_channels=configs.enc_in,
+                kernel_size=3,
+                padding=1,
+                groups=configs.enc_in,
+            ),
+            nn.GELU(),
+        )
         # Embedding
         self.enc_embedding = DataEmbedding_inverted(configs.seq_len, configs.d_model, configs.embed, configs.freq,
                                                     configs.dropout)
@@ -47,6 +58,7 @@ class Model(nn.Module):
 
         _, _, N = x_enc.shape
 
+        x_enc = self.local_cnn(x_enc.permute(0, 2, 1)).permute(0, 2, 1)
         enc_out = self.enc_embedding(x_enc, x_mark_enc)
         enc_out, attns = self.encoder(enc_out, attn_mask=None)
 

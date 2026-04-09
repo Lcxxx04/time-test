@@ -22,7 +22,7 @@ if __name__ == '__main__':
     parser.add_argument('--is_training', type=int, required=True, default=1, help='status')
     parser.add_argument('--model_id', type=str, required=True, default='test', help='model id')
     parser.add_argument('--model', type=str, required=True, default='iTransformer',
-                        choices=['iTransformer', 'PatchTST', 'TimeXer'],
+                        choices=['iTransformer', 'DC-iTransformer', 'PatchTST', 'TimeXer'],
                         help='forecasting model name')
 
     # data loader

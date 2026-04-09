@@ -6,7 +6,7 @@ It now supports only:
 
 - `long_term_forecast`
 - `short_term_forecast`
-- `iTransformer`
+- `iTransformer` / `DC-iTransformer`
 - `PatchTST`
 - `TimeXer`
 
@@ -21,7 +21,7 @@ The current workflow is intended for electricity-load forecasting experiments, i
 
 ### Models
 
-- `iTransformer`
+- `iTransformer` (baseline) and `DC-iTransformer` (improved variant), implemented in `models/iTransformer.py` and `models/DC_iTransformer.py`
 - `PatchTST`
 - `TimeXer`
 
@@ -36,6 +36,7 @@ Time-Series-Library/
 │   └── exp_short_term_forecasting.py
 ├── models/
 │   ├── iTransformer.py
+│   ├── DC_iTransformer.py
 │   ├── PatchTST.py
 │   ├── TimeXer.py
 │   └── __init__.py
@@ -75,10 +76,13 @@ Adjust the PyTorch build to match your local CUDA setup if needed.
 `run.py` now accepts only the following model names:
 
 - `iTransformer`
+- `DC-iTransformer`
 - `PatchTST`
 - `TimeXer`
 
 ## Example Commands
+
+The examples below follow representative script configurations. For exact benchmark reproduction, prefer the paired shell scripts under `scripts/`.
 
 ### Long-term Forecasting
 
@@ -86,7 +90,7 @@ Adjust the PyTorch build to match your local CUDA setup if needed.
 python -u run.py \
   --task_name long_term_forecast \
   --is_training 1 \
-  --model_id ett_iTransformer \
+  --model_id ETTh2_96_96 \
   --model iTransformer \
   --data ETTh2 \
   --root_path ./dataset/ETT-small/ \
@@ -95,16 +99,46 @@ python -u run.py \
   --seq_len 96 \
   --label_len 48 \
   --pred_len 96 \
+  --e_layers 2 \
+  --d_layers 1 \
+  --factor 3 \
   --enc_in 7 \
   --dec_in 7 \
-  --c_out 7
+  --c_out 7 \
+  --des Exp \
+  --d_model 128 \
+  --d_ff 128
 ```
 
 ```bash
 python -u run.py \
   --task_name long_term_forecast \
   --is_training 1 \
-  --model_id ett_patchtst \
+  --model_id ETTh2_96_96 \
+  --model DC-iTransformer \
+  --data ETTh2 \
+  --root_path ./dataset/ETT-small/ \
+  --data_path ETTh2.csv \
+  --features M \
+  --seq_len 96 \
+  --label_len 48 \
+  --pred_len 96 \
+  --e_layers 2 \
+  --d_layers 1 \
+  --factor 3 \
+  --enc_in 7 \
+  --dec_in 7 \
+  --c_out 7 \
+  --des Exp \
+  --d_model 128 \
+  --d_ff 128
+```
+
+```bash
+python -u run.py \
+  --task_name long_term_forecast \
+  --is_training 1 \
+  --model_id ETTh1_96_96 \
   --model PatchTST \
   --data ETTh1 \
   --root_path ./dataset/ETT-small/ \
@@ -113,16 +147,21 @@ python -u run.py \
   --seq_len 96 \
   --label_len 48 \
   --pred_len 96 \
+  --e_layers 1 \
+  --d_layers 1 \
+  --factor 3 \
   --enc_in 7 \
   --dec_in 7 \
-  --c_out 7
+  --c_out 7 \
+  --des Exp \
+  --n_heads 2
 ```
 
 ```bash
 python -u run.py \
   --task_name long_term_forecast \
   --is_training 1 \
-  --model_id ett_timexer \
+  --model_id ETTh1_96_96 \
   --model TimeXer \
   --data ETTh1 \
   --root_path ./dataset/ETT-small/ \
@@ -131,10 +170,14 @@ python -u run.py \
   --seq_len 96 \
   --label_len 48 \
   --pred_len 96 \
+  --e_layers 1 \
+  --factor 3 \
   --enc_in 7 \
   --dec_in 7 \
   --c_out 7 \
-  --patch_len 16
+  --des exp \
+  --d_model 256 \
+  --batch_size 4
 ```
 
 ### Short-term Forecasting
@@ -143,30 +186,67 @@ python -u run.py \
 python -u run.py \
   --task_name short_term_forecast \
   --is_training 1 \
-  --model_id m4_iTransformer \
+  --model_id m4_Monthly \
   --model iTransformer \
   --data m4 \
-  --root_path ./dataset/m4/ \
+  --root_path ./dataset/m4 \
   --seasonal_patterns Monthly \
-  --features S
+  --features M \
+  --enc_in 1 \
+  --dec_in 1 \
+  --c_out 1 \
+  --d_model 512 \
+  --factor 3 \
+  --e_layers 2 \
+  --d_layers 1 \
+  --batch_size 16 \
+  --des Exp \
+  --learning_rate 0.001 \
+  --loss SMAPE
+```
+
+```bash
+python -u run.py \
+  --task_name short_term_forecast \
+  --is_training 1 \
+  --model_id m4_Monthly \
+  --model DC-iTransformer \
+  --data m4 \
+  --root_path ./dataset/m4 \
+  --seasonal_patterns Monthly \
+  --features M \
+  --enc_in 1 \
+  --dec_in 1 \
+  --c_out 1 \
+  --d_model 512 \
+  --factor 3 \
+  --e_layers 2 \
+  --d_layers 1 \
+  --batch_size 16 \
+  --des Exp \
+  --learning_rate 0.001 \
+  --loss SMAPE
 ```
 
 ## Script Entry Points
 
-The repository keeps only forecasting scripts related to the three supported models.
+The repository keeps forecasting scripts for the supported models. The paths below are representative entry points; additional dataset-specific scripts remain under `scripts/long_term_forecast/` and `scripts/short_term_forecast/`.
 
 Examples:
 
 - `scripts/long_term_forecast/ETT_script/iTransformer_ETTh2.sh`
+- `scripts/long_term_forecast/ETT_script/DC_iTransformer_ETTh2.sh`
 - `scripts/long_term_forecast/ETT_script/PatchTST_ETTh1.sh`
 - `scripts/long_term_forecast/ETT_script/TimeXer_ETTh1.sh`
 - `scripts/short_term_forecast/iTransformer_M4.sh`
+- `scripts/short_term_forecast/DC_iTransformer_M4.sh`
 
 ## Notes
 
 - The public data pipeline under `data_provider/` is intentionally kept conservative to avoid breaking forecasting runs.
-- Some shared utilities and layers remain in place even if they are broader than the three-model surface area.
+- Some shared utilities and layers remain in place even if they are broader than the supported-model surface area.
 - This repository no longer exposes imputation, anomaly detection, classification, or zero-shot forecasting through the maintained CLI and script entry points.
+- Built-in tests are executed with `python -m unittest`; no `pytest` dependency is required for the current test suite.
 
 ## Citation
 

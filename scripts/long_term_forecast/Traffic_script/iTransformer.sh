@@ -1,3 +1,4 @@
+# Baseline iTransformer script (not DC_iTransformer).
 export CUDA_VISIBLE_DEVICES=0
 
 model_name=iTransformer

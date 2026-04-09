@@ -1,7 +1,6 @@
-# Baseline iTransformer script (not DC_iTransformer).
 export CUDA_VISIBLE_DEVICES=0
 
-model_name=iTransformer
+model_name=DC-iTransformer
 
 python -u run.py \
   --task_name long_term_forecast \
