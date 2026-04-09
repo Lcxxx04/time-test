@@ -20,7 +20,5 @@ services:
     #   - "8888:8888"
     #   - "6006:6006"
     volumes:
-      - workspace_data:/workspace
+      - .:/workspace
     working_dir: /workspace
-volumes:
-  workspace_data:

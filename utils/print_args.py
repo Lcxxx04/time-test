@@ -18,16 +18,6 @@ def print_args(args):
         print(f'  {"Inverse:":<20}{args.inverse:<20}')
         print()
 
-    if args.task_name == 'imputation':
-        print("\033[1m" + "Imputation Task" + "\033[0m")
-        print(f'  {"Mask Rate:":<20}{args.mask_rate:<20}')
-        print()
-
-    if args.task_name == 'anomaly_detection':
-        print("\033[1m" + "Anomaly Detection Task" + "\033[0m")
-        print(f'  {"Anomaly Ratio:":<20}{args.anomaly_ratio:<20}')
-        print()
-
     print("\033[1m" + "Model Parameters" + "\033[0m")
     print(f'  {"Top k:":<20}{args.top_k:<20}{"Num Kernels:":<20}{args.num_kernels:<20}')
     print(f'  {"Enc In:":<20}{args.enc_in:<20}{"Dec In:":<20}{args.dec_in:<20}')

@@ -3,9 +3,7 @@ import torch
 import importlib
 import pkgutil  
 
-# Just put your model files under models/ folder
-# e.g., models/Transformer.py, models/LSTM.py, etc.
-# All models will be automatically detected and can be used by specifying their names.
+ALLOWED_MODELS = {'iTransformer', 'PatchTST', 'TimeXer'}
 
 class Exp_Basic(object):
     def __init__(self, args):
@@ -36,6 +34,8 @@ class Exp_Basic(object):
                 if filename.endswith('.py') and filename != '__init__.py':
                     # Remove .py extension to get module name
                     module_name = filename[:-3]
+                    if module_name not in ALLOWED_MODELS:
+                        continue
                     
                     # Build full import path
                     full_path = f"{models_dir}.{module_name}"
@@ -93,10 +93,10 @@ class LazyModelDict(dict):
             
         module_path = self.model_map[key]
         try:
-            print(f"🚀 Lazy Loading: {key} ...") 
+            print(f"Lazy Loading: {key} ...")
             module = importlib.import_module(module_path)
         except ImportError as e:
-            print(f"❌ Error: Failed to import model [{key}]. Dependencies missing?")
+            print(f"Error: Failed to import model [{key}]. Dependencies missing?")
             raise e
 
         # Try to find the model class

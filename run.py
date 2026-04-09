@@ -13,15 +13,17 @@ if __name__ == '__main__':
     torch.manual_seed(fix_seed)
     np.random.seed(fix_seed)
 
-    parser = argparse.ArgumentParser(description='TimesNet')
+    parser = argparse.ArgumentParser(description='TSLib forecasting runner')
 
     # basic config
     parser.add_argument('--task_name', type=str, required=True, default='long_term_forecast',
-                        help='task name, options:[long_term_forecast, short_term_forecast, imputation, classification, anomaly_detection]')
+                        choices=['long_term_forecast', 'short_term_forecast'],
+                        help='forecasting task type')
     parser.add_argument('--is_training', type=int, required=True, default=1, help='status')
     parser.add_argument('--model_id', type=str, required=True, default='test', help='model id')
-    parser.add_argument('--model', type=str, required=True, default='Autoformer',
-                        help='model name, options: [Autoformer, Transformer, TimesNet]')
+    parser.add_argument('--model', type=str, required=True, default='iTransformer',
+                        choices=['iTransformer', 'PatchTST', 'TimeXer'],
+                        help='forecasting model name')
 
     # data loader
     parser.add_argument('--data', type=str, required=True, default='ETTh1', help='dataset type')
@@ -40,12 +42,6 @@ if __name__ == '__main__':
     parser.add_argument('--pred_len', type=int, default=96, help='prediction sequence length')
     parser.add_argument('--seasonal_patterns', type=str, default='Monthly', help='subset for M4')
     parser.add_argument('--inverse', action='store_true', help='inverse output data', default=False)
-
-    # inputation task
-    parser.add_argument('--mask_rate', type=float, default=0.25, help='mask ratio')
-
-    # anomaly detection task
-    parser.add_argument('--anomaly_ratio', type=float, default=0.25, help='prior anomaly ratio (%%)')
 
     # model define
     parser.add_argument('--expand', type=int, default=2, help='expansion factor for Mamba')
@@ -174,24 +170,9 @@ if __name__ == '__main__':
     print_args(args)
 
 
-    if args.task_name == 'long_term_forecast':
-        from exp.exp_long_term_forecasting import Exp_Long_Term_Forecast
-        Exp = Exp_Long_Term_Forecast
-    elif args.task_name == 'short_term_forecast':
+    if args.task_name == 'short_term_forecast':
         from exp.exp_short_term_forecasting import Exp_Short_Term_Forecast
         Exp = Exp_Short_Term_Forecast
-    elif args.task_name == 'imputation':
-        from exp.exp_imputation import Exp_Imputation
-        Exp = Exp_Imputation
-    elif args.task_name == 'anomaly_detection':
-        from exp.exp_anomaly_detection import Exp_Anomaly_Detection
-        Exp = Exp_Anomaly_Detection
-    elif args.task_name == 'classification':
-        from exp.exp_classification import Exp_Classification
-        Exp = Exp_Classification
-    elif args.task_name == 'zero_shot_forecast':
-        from exp.exp_zero_shot_forecasting import Exp_Zero_Shot_Forecast
-        Exp = Exp_Zero_Shot_Forecast
     else:
         from exp.exp_long_term_forecasting import Exp_Long_Term_Forecast
         Exp = Exp_Long_Term_Forecast
