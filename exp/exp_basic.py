@@ -3,7 +3,7 @@ import torch
 import importlib
 import pkgutil  
 
-ALLOWED_MODELS = {'iTransformer', 'DC-iTransformer', 'PatchTST', 'TimeXer'}
+ALLOWED_MODELS = {'iTransformer', 'DC-iTransformer', 'iTransformer-GLU', 'PatchTST', 'TimeXer'}
 
 class Exp_Basic(object):
     def __init__(self, args):
@@ -46,6 +46,8 @@ class Exp_Basic(object):
         # CLI name differs from Python module filename (hyphen vs underscore)
         if 'DC-iTransformer' in ALLOWED_MODELS:
             model_map['DC-iTransformer'] = 'models.DC_iTransformer'
+        if 'iTransformer-GLU' in ALLOWED_MODELS:
+            model_map['iTransformer-GLU'] = 'models.iTransformer_GLU'
 
         return model_map
 
