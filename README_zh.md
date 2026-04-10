@@ -6,7 +6,7 @@
 
 - `long_term_forecast`
 - `short_term_forecast`
-- `iTransformer`、`DC-iTransformer`、`iTransformer-GLU`、`PatchTST`、`TimeXer`
+- `iTransformer`、`DC-iTransformer`、`iTransformer-GLU`、`DC-iTransformer-GLU`、`PatchTST`、`TimeXer`
 
 当前工作流主要服务于电力负荷预测实验，包括家庭用电量预测场景，同时继续兼容仓库中现有的 benchmark 风格数据通路。
 
@@ -19,9 +19,8 @@
 
 ### 模型
 
-- `iTransformer`（基线）、`DC-iTransformer`（卷积增强）、`iTransformer-GLU`（GLU 输出头）：`models/iTransformer.py`、`models/DC_iTransformer.py`、`models/iTransformer_GLU.py`
-- `PatchTST`
-- `TimeXer`
+- **iTransformer 族四条线：** 基线 `iTransformer`（`models/iTransformer.py`）；卷积增强 `DC-iTransformer`（`models/DC_iTransformer.py`）；GLU 输出头 `iTransformer-GLU`（`models/iTransformer_GLU.py`）；组合版 `DC-iTransformer-GLU`（`models/DC_iTransformer_GLU.py`）。
+- `PatchTST`、`TimeXer`
 
 ## 仓库结构
 
@@ -36,6 +35,7 @@ Time-Series-Library/
 │   ├── iTransformer.py
 │   ├── DC_iTransformer.py
 │   ├── iTransformer_GLU.py
+│   ├── DC_iTransformer_GLU.py
 │   ├── PatchTST.py
 │   ├── TimeXer.py
 │   └── __init__.py
@@ -77,6 +77,7 @@ pip install -r requirements.txt
 - `iTransformer`
 - `DC-iTransformer`
 - `iTransformer-GLU`
+- `DC-iTransformer-GLU`
 - `PatchTST`
 - `TimeXer`
 
@@ -140,6 +141,30 @@ python -u run.py \
   --is_training 1 \
   --model_id ETTh2_96_96 \
   --model iTransformer-GLU \
+  --data ETTh2 \
+  --root_path ./dataset/ETT-small/ \
+  --data_path ETTh2.csv \
+  --features M \
+  --seq_len 96 \
+  --label_len 48 \
+  --pred_len 96 \
+  --e_layers 2 \
+  --d_layers 1 \
+  --factor 3 \
+  --enc_in 7 \
+  --dec_in 7 \
+  --c_out 7 \
+  --des Exp \
+  --d_model 128 \
+  --d_ff 128
+```
+
+```bash
+python -u run.py \
+  --task_name long_term_forecast \
+  --is_training 1 \
+  --model_id ETTh2_96_96 \
+  --model DC-iTransformer-GLU \
   --data ETTh2 \
   --root_path ./dataset/ETT-small/ \
   --data_path ETTh2.csv \
@@ -275,6 +300,29 @@ python -u run.py \
   --loss SMAPE
 ```
 
+```bash
+python -u run.py \
+  --task_name short_term_forecast \
+  --is_training 1 \
+  --model_id m4_Monthly \
+  --model DC-iTransformer-GLU \
+  --data m4 \
+  --root_path ./dataset/m4 \
+  --seasonal_patterns Monthly \
+  --features M \
+  --enc_in 1 \
+  --dec_in 1 \
+  --c_out 1 \
+  --d_model 512 \
+  --factor 3 \
+  --e_layers 2 \
+  --d_layers 1 \
+  --batch_size 16 \
+  --des Exp \
+  --learning_rate 0.001 \
+  --loss SMAPE
+```
+
 ## 脚本入口
 
 仓库当前保留的是这些支持模型的预测脚本。下面列的是代表性入口，更多数据集脚本仍保留在 `scripts/long_term_forecast/` 和 `scripts/short_term_forecast/` 下。
@@ -284,11 +332,13 @@ python -u run.py \
 - `scripts/long_term_forecast/ETT_script/iTransformer_ETTh2.sh`
 - `scripts/long_term_forecast/ETT_script/DC_iTransformer_ETTh2.sh`
 - `scripts/long_term_forecast/ETT_script/iTransformer_GLU_ETTh2.sh`
+- `scripts/long_term_forecast/ETT_script/DC_iTransformer_GLU_ETTh2.sh`
 - `scripts/long_term_forecast/ETT_script/PatchTST_ETTh1.sh`
 - `scripts/long_term_forecast/ETT_script/TimeXer_ETTh1.sh`
 - `scripts/short_term_forecast/iTransformer_M4.sh`
 - `scripts/short_term_forecast/DC_iTransformer_M4.sh`
 - `scripts/short_term_forecast/iTransformer_GLU_M4.sh`
+- `scripts/short_term_forecast/DC_iTransformer_GLU_M4.sh`
 
 ## 说明
 

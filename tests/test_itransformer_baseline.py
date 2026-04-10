@@ -51,6 +51,8 @@ def verify_itransformer_checkpoints():
         if "iTransformer" in d
         and "DC-iTransformer" not in d
         and "DC_iTransformer" not in d
+        and "iTransformer-GLU" not in d
+        and "iTransformer_GLU" not in d
         and (_CHECKPOINTS_DIR / d).is_dir()
         and (_CHECKPOINTS_DIR / d / "checkpoint.pth").is_file()
     )
