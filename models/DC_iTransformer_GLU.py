@@ -19,6 +19,8 @@ class Model(nn.Module):
         self.task_name = configs.task_name
         self.seq_len = configs.seq_len
         self.pred_len = configs.pred_len
+        self.last_gate_score = None
+        self.last_linear_out = None
         self.local_cnn = nn.Sequential(
             nn.Conv1d(
                 in_channels=configs.enc_in,
@@ -62,6 +64,12 @@ class Model(nn.Module):
 
         linear_out = self.proj_linear(enc_out)
         gate_score = self.proj_gate(enc_out)
+        self.last_gate_score = torch.sigmoid(gate_score)[:, :N, :].detach()
+        linear_dec_out = linear_out.permute(0, 2, 1)[:, :, :N]
+        self.last_linear_out = (
+            linear_dec_out * (stdev[:, 0, :].unsqueeze(1).repeat(1, self.pred_len, 1))
+            + (means[:, 0, :].unsqueeze(1).repeat(1, self.pred_len, 1))
+        ).detach()
         dec_out = (linear_out * torch.sigmoid(gate_score)).permute(0, 2, 1)[:, :, :N]
         dec_out = dec_out * (stdev[:, 0, :].unsqueeze(1).repeat(1, self.pred_len, 1))
         dec_out = dec_out + (means[:, 0, :].unsqueeze(1).repeat(1, self.pred_len, 1))

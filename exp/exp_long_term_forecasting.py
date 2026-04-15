@@ -15,6 +15,15 @@ from utils.augmentation import run_augmentation, run_augmentation_single
 warnings.filterwarnings('ignore')
 
 
+def summarize_gate_scores(gate_array):
+    return {
+        'gate_mean': float(np.mean(gate_array)),
+        'gate_std': float(np.std(gate_array)),
+        'gate_min': float(np.min(gate_array)),
+        'gate_max': float(np.max(gate_array)),
+    }
+
+
 class Exp_Long_Term_Forecast(Exp_Basic):
     def __init__(self, args):
         super(Exp_Long_Term_Forecast, self).__init__(args)
@@ -188,6 +197,8 @@ class Exp_Long_Term_Forecast(Exp_Basic):
 
         preds = []
         trues = []
+        gate_scores = []
+        linear_outputs = []
 
         # 结果文件夹
         folder_path = './results/' + setting + '/'
@@ -212,6 +223,12 @@ class Exp_Long_Term_Forecast(Exp_Basic):
                         outputs = self.model(batch_x, batch_x_mark, dec_inp, batch_y_mark)
                 else:
                     outputs = self.model(batch_x, batch_x_mark, dec_inp, batch_y_mark)
+
+                inner_model = self.model.module if isinstance(self.model, nn.DataParallel) else self.model
+                if hasattr(inner_model, 'last_gate_score') and inner_model.last_gate_score is not None:
+                    gate_scores.append(inner_model.last_gate_score.detach().cpu().numpy())
+                if hasattr(inner_model, 'last_linear_out') and inner_model.last_linear_out is not None:
+                    linear_outputs.append(inner_model.last_linear_out.detach().cpu().numpy())
 
                 f_dim = -1 if self.args.features == 'MS' else 0
                 outputs = outputs[:, -self.args.pred_len:, :]
@@ -255,5 +272,17 @@ class Exp_Long_Term_Forecast(Exp_Basic):
         np.save(folder_path + 'metrics.npy', np.array([mae, mse, rmse, mape, r2]))
         np.save(folder_path + 'pred.npy', preds)
         np.save(folder_path + 'true.npy', trues)
+
+        if gate_scores:
+            gate_scores = np.concatenate(gate_scores, axis=0)
+            np.save(folder_path + 'gate.npy', gate_scores)
+            gate_stats = summarize_gate_scores(gate_scores)
+            with open(folder_path + 'gate_stats.txt', 'w', encoding='utf-8') as f:
+                for key, value in gate_stats.items():
+                    f.write(f'{key}: {value:.6f}\n')
+
+        if linear_outputs:
+            linear_outputs = np.concatenate(linear_outputs, axis=0)
+            np.save(folder_path + 'linear_out.npy', linear_outputs)
 
         return
